@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 	"unicode"
@@ -28,20 +29,77 @@ type Client struct {
 	http    *http.Client
 }
 
-func New(baseURL, apiKey, model string) *Client {
+func New(baseURL, apiKey, model, proxy string) *Client {
 	if model == "" {
 		model = "gpt-4o-mini"
+	}
+	transport := &http.Transport{}
+	if strings.TrimSpace(proxy) != "" {
+		if u, err := url.Parse(proxy); err == nil {
+			transport.Proxy = http.ProxyURL(u)
+		}
 	}
 	return &Client{
 		baseURL: strings.TrimRight(baseURL, "/"),
 		apiKey:  apiKey,
 		model:   model,
-		http:    &http.Client{Timeout: 25 * time.Second},
+		http:    &http.Client{Transport: transport, Timeout: 25 * time.Second},
 	}
 }
 
 func (c *Client) Enabled() bool {
 	return c != nil && c.apiKey != "" && c.baseURL != ""
+}
+
+func (c *Client) Ping(ctx context.Context) (string, error) {
+	if !c.Enabled() {
+		return "", fmt.Errorf("ai 未配置")
+	}
+	body := map[string]any{
+		"model": c.model,
+		"messages": []map[string]string{
+			{"role": "user", "content": "只回复两个字母：ok"},
+		},
+		"temperature": 0,
+		"max_tokens":  8,
+	}
+	raw, err := json.Marshal(body)
+	if err != nil {
+		return "", err
+	}
+	url := c.baseURL
+	if !strings.HasSuffix(url, "/chat/completions") {
+		url = strings.TrimRight(url, "/") + "/chat/completions"
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(raw))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<16))
+	if resp.StatusCode >= 400 {
+		return "", fmt.Errorf("ai status %d: %s", resp.StatusCode, truncate(string(b), 160))
+	}
+	var wrap struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+	if err := json.Unmarshal(b, &wrap); err != nil {
+		return "", err
+	}
+	if len(wrap.Choices) == 0 {
+		return "", fmt.Errorf("ai 无返回")
+	}
+	return strings.TrimSpace(wrap.Choices[0].Message.Content), nil
 }
 
 func (c *Client) Classify(ctx context.Context, query, title, hintCat string) (*Result, error) {

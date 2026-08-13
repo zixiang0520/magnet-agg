@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"magnet-agg/internal/cfg"
+	"magnet-agg/internal/classify"
 	"magnet-agg/internal/drive"
 	"magnet-agg/internal/plugin"
 	"magnet-agg/internal/search"
@@ -42,6 +43,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/settings", s.settings)
 	mux.HandleFunc("/api/plugins/test", s.testPlugin)
 	mux.HandleFunc("/api/tmdb/test", s.testTMDB)
+	mux.HandleFunc("/api/ai/test", s.testAI)
 	mux.HandleFunc("/api/tmdb/discover", s.tmdbDiscover)
 	mux.HandleFunc("/api/tmdb/poster", s.tmdbPoster)
 	mux.HandleFunc("/api/2dland/status", s.landStatus)
@@ -145,6 +147,7 @@ func (s *Server) saveSettings(w http.ResponseWriter, r *http.Request) {
 		AIBaseURL    *string                  `json:"ai_base_url"`
 		AIAPIKey     *string                  `json:"ai_api_key"`
 		AIModel      *string                  `json:"ai_model"`
+		AIProxy      *string                  `json:"ai_proxy"`
 		AccessPassword *string                `json:"access_password"`
 	}
 	if err := decodeJSON(r, &body); err != nil {
@@ -189,6 +192,9 @@ func (s *Server) saveSettings(w http.ResponseWriter, r *http.Request) {
 	}
 	if body.AIModel != nil && *body.AIModel != "" {
 		c.AIModel = *body.AIModel
+	}
+	if body.AIProxy != nil {
+		c.AIProxy = *body.AIProxy
 	}
 	if body.AccessPassword != nil && strings.TrimSpace(*body.AccessPassword) != "" {
 		c.AccessPassword = strings.TrimSpace(*body.AccessPassword)
@@ -303,6 +309,68 @@ func (s *Server) testTMDB(w http.ResponseWriter, r *http.Request) {
 		out["error"] = "无结果"
 	}
 	writeJSON(w, 200, out)
+}
+
+func (s *Server) testAI(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(405)
+		return
+	}
+	var body struct {
+		Base  string `json:"ai_base_url"`
+		Key   string `json:"ai_api_key"`
+		Model string `json:"ai_model"`
+		Proxy string `json:"ai_proxy"`
+	}
+	if err := decodeJSON(r, &body); err != nil && err != io.EOF {
+		writeJSON(w, 400, map[string]string{"error": err.Error()})
+		return
+	}
+	c := cfg.Get()
+	base := strings.TrimSpace(body.Base)
+	if base == "" {
+		base = c.AIBaseURL
+	}
+	key := strings.TrimSpace(body.Key)
+	if key == "" {
+		key = c.AIAPIKey
+	}
+	model := strings.TrimSpace(body.Model)
+	if model == "" {
+		model = c.AIModel
+	}
+	proxy := strings.TrimSpace(body.Proxy)
+	if proxy == "" {
+		proxy = c.AIProxy
+	}
+	if base == "" || key == "" {
+		writeJSON(w, 400, map[string]string{"error": "未配置 AI Base URL / API Key"})
+		return
+	}
+	cli := classify.New(base, key, model, proxy)
+	start := time.Now()
+	reply, err := cli.Ping(r.Context())
+	out := map[string]any{
+		"ok":      err == nil,
+		"model":   model,
+		"base":    base,
+		"proxy":   proxy,
+		"took_ms": time.Since(start).Milliseconds(),
+	}
+	if err != nil {
+		out["error"] = err.Error()
+	} else {
+		out["reply"] = truncateRunes(reply, 40)
+	}
+	writeJSON(w, 200, out)
+}
+
+func truncateRunes(s string, n int) string {
+	r := []rune(s)
+	if len(r) <= n {
+		return s
+	}
+	return string(r[:n]) + "…"
 }
 
 func tmdbClientFromCfg() (*tmdb.Client, error) {

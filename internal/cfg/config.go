@@ -30,6 +30,7 @@ type Config struct {
 	AIBaseURL string `json:"ai_base_url"`
 	AIAPIKey  string `json:"ai_api_key"`
 	AIModel   string `json:"ai_model"`
+	AIProxy   string `json:"ai_proxy"`
 
 	AccessPassword string `json:"access_password"`
 }
@@ -167,6 +168,7 @@ func Public(c *Config) map[string]any {
 		"ai_base_url":        c.AIBaseURL,
 		"has_ai_api_key":      c.AIAPIKey != "",
 		"ai_model":            c.AIModel,
+		"ai_proxy":            c.AIProxy,
 		"has_access_password": c.AccessPassword != "",
 	}
 }

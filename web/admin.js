@@ -33,6 +33,7 @@ async function loadSettings() {
   $('#tmdbLang').value = s.tmdb_language || 'zh-CN';
   $('#aiBase').value = s.ai_base_url || '';
   $('#aiModel').value = s.ai_model || '';
+  $('#aiProxy').value = s.ai_proxy || '';
   $('#landMeta').textContent = [
     s.has_client_secret ? '已存 secret' : '未填 secret',
     s.has_tmdb_api_key ? 'TMDB 已配' : 'TMDB 未配',
@@ -122,6 +123,7 @@ $('#saveMeta').onclick = async () => {
     tmdb_language: $('#tmdbLang').value.trim() || 'zh-CN',
     ai_base_url: $('#aiBase').value.trim(),
     ai_model: $('#aiModel').value.trim(),
+    ai_proxy: $('#aiProxy').value.trim(),
   };
   const tk = $('#tmdb').value.trim();
   const ak = $('#aiKey').value.trim();
@@ -149,7 +151,26 @@ $('#testTmdb').onclick = async () => {
         tmdb_api_key: $('#tmdb').value.trim(),
       }),
     });
-    flash('#tmdbMeta', r.ok ? `通 · ${r.title || ''} (${r.took_ms}ms)` : (`失败 · ${r.error || ''}`));
+    flash('#tmdbMeta', r.ok ? `TMDB 通 · ${r.title || ''} (${r.took_ms}ms)` : (`TMDB 失败 · ${r.error || ''}`));
+  } catch (e) {
+    flash('#tmdbMeta', e.message);
+  }
+};
+
+$('#testAI').onclick = async () => {
+  flash('#tmdbMeta', '测 AI…');
+  try {
+    const r = await api('/api/ai/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ai_base_url: $('#aiBase').value.trim(),
+        ai_model: $('#aiModel').value.trim(),
+        ai_api_key: $('#aiKey').value.trim(),
+        ai_proxy: $('#aiProxy').value.trim(),
+      }),
+    });
+    flash('#tmdbMeta', r.ok ? `AI 通 · ${r.model || ''} · ${r.reply || ''} (${r.took_ms}ms)` : (`AI 失败 · ${r.error || ''}`));
   } catch (e) {
     flash('#tmdbMeta', e.message);
   }

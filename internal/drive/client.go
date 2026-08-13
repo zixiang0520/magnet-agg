@@ -72,7 +72,7 @@ func New(c *cfg.Config) *Client {
 		cl.tmdb = tmdb.New(c.TmdbAPIKey, c.TmdbProxy, c.TmdbLang)
 	}
 	if c.AIAPIKey != "" && c.AIBaseURL != "" {
-		cl.ai = classify.New(c.AIBaseURL, c.AIAPIKey, c.AIModel)
+		cl.ai = classify.New(c.AIBaseURL, c.AIAPIKey, c.AIModel, c.AIProxy)
 	}
 	return cl
 }
@@ -89,7 +89,7 @@ func (c *Client) Reload(cfg *cfg.Config) {
 	if cfg.AIAPIKey == "" || cfg.AIBaseURL == "" {
 		c.ai = nil
 	} else {
-		c.ai = classify.New(cfg.AIBaseURL, cfg.AIAPIKey, cfg.AIModel)
+		c.ai = classify.New(cfg.AIBaseURL, cfg.AIAPIKey, cfg.AIModel, cfg.AIProxy)
 	}
 	if cfg.ClientID != c.clientID {
 		_ = c.store.ClearConfigs()
