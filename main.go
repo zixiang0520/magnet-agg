@@ -4,31 +4,41 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
+	"magnet-agg/internal/cfg"
+	"magnet-agg/internal/drive"
 	"magnet-agg/internal/plugin"
 	"magnet-agg/internal/search"
 	"magnet-agg/internal/server"
 )
 
 func main() {
-	addr := env("LISTEN", ":8080")
-	site6vBase := env("SITE6V_BASE", "https://www.6v520.com")
-
-	reg := plugin.NewRegistry()
-	reg.Register(plugin.NewSite6V(site6vBase, 8))
-	reg.Register(plugin.NewAPIBay())
-	reg.Register(plugin.NewTorrentsCSV())
-	// yts.mx TLS often fails behind current proxy; keep code for optional enable:
-	if os.Getenv("ENABLE_YTS") == "1" {
-		reg.Register(plugin.NewYTS())
+	cfgPath := env("CONFIG", "data/config.json")
+	c, err := cfg.Load(cfgPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if v := env("LISTEN", ""); v != "" {
+		c.Listen = v
+	}
+	if err := os.MkdirAll(filepath.Dir(c.TokenFile), 0o755); err != nil {
+		log.Fatal(err)
 	}
 
+	var specs []plugin.PluginSpec
+	for _, name := range plugin.KnownPlugins {
+		pc := c.Plugins[name]
+		specs = append(specs, plugin.PluginSpec{Name: name, Enabled: pc.Enabled, Base: pc.Base, Proxy: pc.Proxy})
+	}
+	reg := plugin.Build(specs)
 	eng := search.NewEngine(reg, 45*time.Second)
-	srv := server.New(eng, reg, "web")
+	drv := drive.New(c)
+	srv := server.New(eng, drv, "web", cfgPath)
 
-	log.Printf("magnet-agg listening on %s plugins=%v", addr, reg.Names())
-	if err := http.ListenAndServe(addr, srv.Handler()); err != nil {
+	log.Printf("magnet-agg listening on %s plugins=%v logged_in=%v", c.Listen, reg.Names(), drv.LoggedIn())
+	if err := http.ListenAndServe(c.Listen, srv.Handler()); err != nil {
 		log.Fatal(err)
 	}
 }

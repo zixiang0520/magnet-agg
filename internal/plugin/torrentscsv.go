@@ -19,27 +19,17 @@ type TorrentsCSV struct {
 }
 
 func NewTorrentsCSV() *TorrentsCSV {
-	transport := http.DefaultTransport.(*http.Transport).Clone()
-	proxyURL := firstNonEmpty(
-		os.Getenv("TORRENTSCSV_PROXY"),
-		os.Getenv("APIBAY_PROXY"),
-		os.Getenv("HTTPS_PROXY"),
-		os.Getenv("HTTP_PROXY"),
+	return NewTorrentsCSVWith(
+		os.Getenv("TORRENTSCSV_BASE"),
+		firstNonEmpty(os.Getenv("TORRENTSCSV_PROXY"), os.Getenv("APIBAY_PROXY"), os.Getenv("HTTPS_PROXY"), os.Getenv("HTTP_PROXY")),
 	)
-	if proxyURL != "" {
-		if u, err := url.Parse(proxyURL); err == nil {
-			transport.Proxy = http.ProxyURL(u)
-		}
-	} else {
-		transport.Proxy = http.ProxyFromEnvironment
+}
+
+func NewTorrentsCSVWith(base, proxy string) *TorrentsCSV {
+	if base == "" {
+		base = firstNonEmpty(os.Getenv("TORRENTSCSV_BASE"), "https://torrents-csv.com")
 	}
-	return &TorrentsCSV{
-		base: firstNonEmpty(os.Getenv("TORRENTSCSV_BASE"), "https://torrents-csv.com"),
-		client: &http.Client{
-			Timeout:   20 * time.Second,
-			Transport: transport,
-		},
-	}
+	return &TorrentsCSV{base: strings.TrimRight(base, "/"), client: httpClient(proxy, 20*time.Second, false)}
 }
 
 func (p *TorrentsCSV) Name() string { return "torrents-csv" }

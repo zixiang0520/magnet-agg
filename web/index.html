@@ -4,11 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>磁力聚合搜索 · magnet-agg</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css?v=admin1" />
 </head>
 <body>
-  <header>
+  <header class="bar">
     <h1>磁力聚合搜索</h1>
+    <nav><a href="/admin.html">后台设置</a> · <a href="#" id="logout">退出</a></nav>
   </header>
   <main>
     <form id="f">
@@ -18,6 +19,7 @@
     <div id="meta"></div>
     <div id="list"></div>
   </main>
-  <script src="/app.js"></script>
+  <div id="fab" hidden></div>
+  <script src="/app.js?v=admin1"></script>
 </body>
 </html>

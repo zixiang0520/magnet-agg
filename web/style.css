@@ -13,7 +13,32 @@ body {
   background: var(--bg); color: var(--text); min-height: 100vh;
 }
 header { padding: 1.5rem 1rem 0.5rem; max-width: 920px; margin: 0 auto; }
+header.bar { display:flex; justify-content:space-between; align-items:baseline; }
+header nav a { color: var(--acc); text-decoration:none; font-size:0.9rem; }
 h1 { margin: 0; font-size: 1.4rem; }
+h2 { margin: 0 0 0.6rem; font-size: 1.05rem; }
+.hint, .muted { color: var(--muted); font-size: 0.82rem; }
+.admin { max-width: 920px; }
+.grid { display:grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 0.6rem 0; }
+.grid label { display:flex; flex-direction:column; gap:0.25rem; font-size:0.8rem; color:var(--muted); }
+.grid input, .src-row input {
+  padding: 0.5rem 0.7rem; border-radius: 8px; border:1px solid var(--border);
+  background: var(--bg); color: var(--text);
+}
+.src-row { display:grid; grid-template-columns: 110px 1fr 1fr auto auto; gap:0.4rem; align-items:center; margin-bottom:0.45rem; }
+.chk { color: var(--text); font-size:0.9rem; }
+button.ghost { background:#243044; }
+.login-box { margin-top:0.6rem; padding:0.7rem; background:#121922; border-radius:8px; }
+#fab {
+  position:fixed; bottom:1.2rem; left:50%; transform:translateX(-50%);
+  background:#1f2b3d; border:1px solid var(--border); border-radius:999px;
+  padding:0.5rem 0.8rem; display:flex; gap:0.5rem; align-items:center; z-index:9;
+}
+.pick { float:right; font-size:0.8rem; color:var(--muted); }
+.task { border-top:1px solid var(--border); padding:0.5rem 0; }
+@media (max-width:720px) {
+  .grid, .src-row { grid-template-columns: 1fr; }
+}
 .sub { color: var(--muted); margin: 0.35rem 0 0; font-size: 0.9rem; }
 main { max-width: 920px; margin: 0 auto; padding: 1rem; }
 #f { display: flex; gap: 0.5rem; }
@@ -45,3 +70,6 @@ button:disabled { opacity: 0.6; cursor: wait; }
   background: #243044; color: var(--text); text-decoration: none; border: 0; cursor: pointer;
 }
 .err { color: #ff8e8e; }
+.login-page { min-height:100vh; display:flex; align-items:center; justify-content:center; }
+.login-page form { width:min(360px, 92vw); display:flex; flex-direction:column; gap:0.7rem; }
+.login-page input { padding:0.75rem 1rem; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text); }

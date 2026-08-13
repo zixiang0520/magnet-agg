@@ -20,23 +20,14 @@ type APIBay struct {
 }
 
 func NewAPIBay() *APIBay {
-	transport := http.DefaultTransport.(*http.Transport).Clone()
-	// Prefer dedicated proxy; fall back to HTTPS_PROXY only for this client.
-	proxyURL := firstNonEmpty(os.Getenv("APIBAY_PROXY"), os.Getenv("HTTPS_PROXY"), os.Getenv("HTTP_PROXY"))
-	if proxyURL != "" {
-		if u, err := url.Parse(proxyURL); err == nil {
-			transport.Proxy = http.ProxyURL(u)
-		}
-	} else {
-		transport.Proxy = http.ProxyFromEnvironment
+	return NewAPIBayWith("", firstNonEmpty(os.Getenv("APIBAY_PROXY"), os.Getenv("HTTPS_PROXY"), os.Getenv("HTTP_PROXY")))
+}
+
+func NewAPIBayWith(base, proxy string) *APIBay {
+	if base == "" {
+		base = "https://apibay.org"
 	}
-	return &APIBay{
-		base: "https://apibay.org",
-		client: &http.Client{
-			Timeout:   20 * time.Second,
-			Transport: transport,
-		},
-	}
+	return &APIBay{base: strings.TrimRight(base, "/"), client: httpClient(proxy, 20*time.Second, false)}
 }
 
 func firstNonEmpty(vs ...string) string {

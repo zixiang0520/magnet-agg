@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>后台 · 磁力聚合</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="bar">
+    <h1>后台设置</h1>
+    <nav><a href="/">← 搜索</a> · <a href="#" id="logout">退出</a></nav>
+  </header>
+  <main class="admin">
+    <section class="card">
+      <h2>搜索源</h2>
+      <p class="hint">开关即时保存到服务端。外网源填代理；6v 必须直连，不要填代理。</p>
+      <div id="plugins"></div>
+    </section>
+    <section class="card">
+      <h2>绑定 2dland</h2>
+      <p class="hint">凭证只存服务端，浏览器拿不到 secret。参考清真云/2dland 开放平台 ClientID + 设备码登录。</p>
+      <div class="grid">
+        <label>Client ID<input id="cid" autocomplete="off" /></label>
+        <label>Client Secret<input id="csec" type="password" placeholder="已保存则留空不改" autocomplete="off" /></label>
+        <label>网盘根目录<input id="basedir" placeholder="磁力聚合" /></label>
+      </div>
+      <div class="row">
+        <button type="button" id="saveLand">保存凭证</button>
+        <button type="button" id="loginLand" class="ghost">设备码登录</button>
+        <button type="button" id="logoutLand" class="ghost">退出</button>
+        <span id="landMeta" class="muted"></span>
+      </div>
+      <div id="loginBox" class="login-box" hidden></div>
+    </section>
+    <section class="card">
+      <h2>TMDB + AI</h2>
+      <p class="hint">整理以 TMDB 为主；剧集文件名解析不到集数时才调用 AI。</p>
+      <div class="grid">
+        <label>TMDB API Key<input id="tmdb" type="password" placeholder="已保存则留空不改" /></label>
+        <label>TMDB 代理<input id="tmdbProxy" placeholder="http://192.168.1.100:20172" /></label>
+        <label>TMDB 语言<input id="tmdbLang" placeholder="zh-CN" /></label>
+        <label>AI Base URL<input id="aiBase" placeholder="https://api.openai.com/v1" /></label>
+        <label>AI API Key<input id="aiKey" type="password" placeholder="已保存则留空不改" /></label>
+        <label>AI 模型<input id="aiModel" placeholder="gpt-4o-mini" /></label>
+      </div>
+      <div class="row">
+        <button type="button" id="saveMeta">保存整理设置</button>
+        <button type="button" id="testTmdb" class="ghost">测 TMDB 代理</button>
+        <span id="tmdbMeta" class="muted"></span>
+      </div>
+    </section>
+    <section class="card">
+      <h2>访问密码</h2>
+      <p class="hint">前台搜索和后台都要先登录。留空不改。</p>
+      <div class="grid">
+        <label>新密码<input id="uiPw" type="password" autocomplete="new-password" /></label>
+      </div>
+      <button type="button" id="savePw">更新密码</button>
+      <span id="pwMeta" class="muted"></span>
+    </section>
+    <section class="card">
+      <h2>离线任务</h2>
+      <div class="row">
+        <button type="button" id="refreshTasks" class="ghost">刷新</button>
+        <span id="taskMeta" class="muted"></span>
+      </div>
+      <div id="tasks"></div>
+    </section>
+  </main>
+  <script src="/admin.js"></script>
+</body>
+</html>

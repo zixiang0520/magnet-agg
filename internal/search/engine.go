@@ -12,6 +12,7 @@ import (
 )
 
 type Engine struct {
+	mu      sync.RWMutex
 	reg     *plugin.Registry
 	timeout time.Duration
 }
@@ -46,7 +47,7 @@ func (e *Engine) Search(ctx context.Context, q string) *Response {
 	ctx, cancel := context.WithTimeout(ctx, e.timeout)
 	defer cancel()
 
-	plugins := e.reg.All()
+	plugins := e.Registry().All()
 	var mu sync.Mutex
 	var all []plugin.Result
 	var wg sync.WaitGroup

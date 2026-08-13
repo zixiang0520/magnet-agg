@@ -1,0 +1,21 @@
+{
+  "listen": ":8080",
+  "data_dir": "data",
+  "plugins": {
+    "6v520": { "enabled": true, "base": "https://www.6v520.com" },
+    "apibay": { "enabled": true, "proxy": "http://192.168.1.100:20172" },
+    "torrents-csv": { "enabled": true, "proxy": "http://192.168.1.100:20172" },
+    "yts": { "enabled": false, "proxy": "http://192.168.1.100:20172" }
+  },
+  "client_id": "",
+  "client_secret": "",
+  "token_file": "data/token.json",
+  "base_dir": "磁力聚合",
+  "tmdb_api_key": "",
+  "tmdb_proxy": "http://192.168.1.100:20172",
+  "tmdb_language": "zh-CN",
+  "ai_base_url": "",
+  "ai_api_key": "",
+  "ai_model": "gpt-4o-mini",
+  "access_password": ""
+}

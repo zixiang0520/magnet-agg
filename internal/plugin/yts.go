@@ -19,22 +19,14 @@ type YTS struct {
 }
 
 func NewYTS() *YTS {
-	transport := http.DefaultTransport.(*http.Transport).Clone()
-	proxyURL := firstNonEmpty(os.Getenv("YTS_PROXY"), os.Getenv("APIBAY_PROXY"), os.Getenv("HTTPS_PROXY"), os.Getenv("HTTP_PROXY"))
-	if proxyURL != "" {
-		if u, err := url.Parse(proxyURL); err == nil {
-			transport.Proxy = http.ProxyURL(u)
-		}
-	} else {
-		transport.Proxy = http.ProxyFromEnvironment
+	return NewYTSWith(os.Getenv("YTS_BASE"), firstNonEmpty(os.Getenv("YTS_PROXY"), os.Getenv("APIBAY_PROXY"), os.Getenv("HTTPS_PROXY"), os.Getenv("HTTP_PROXY")))
+}
+
+func NewYTSWith(base, proxy string) *YTS {
+	if base == "" {
+		base = firstNonEmpty(os.Getenv("YTS_BASE"), "https://yts.mx/api/v2")
 	}
-	return &YTS{
-		base: firstNonEmpty(os.Getenv("YTS_BASE"), "https://yts.mx/api/v2"),
-		client: &http.Client{
-			Timeout:   20 * time.Second,
-			Transport: transport,
-		},
-	}
+	return &YTS{base: strings.TrimRight(base, "/"), client: httpClient(proxy, 20*time.Second, false)}
 }
 
 func (p *YTS) Name() string { return "yts" }
