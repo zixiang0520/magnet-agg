@@ -3,7 +3,10 @@ package plugin
 import (
 	"context"
 	"log"
+	"net"
+	"net/http"
 	"sync"
+	"time"
 
 	site6v "magnet-agg/plugins/site6v"
 )
@@ -21,7 +24,19 @@ func NewSite6V(base string, maxDetail int) *Site6V {
 	if base == "" {
 		base = "https://www.6v520.com"
 	}
-	return &Site6V{client: site6v.NewClient(base), maxDetail: maxDetail}
+	c := site6v.NewClient(base)
+	// Never send 6v traffic through outbound proxy (breaks GBK search / WAF).
+	c.HTTP.Transport = &http.Transport{
+		Proxy: nil,
+		DialContext: (&net.Dialer{
+			Timeout:   15 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout: 15 * time.Second,
+		MaxIdleConns:        20,
+		IdleConnTimeout:     90 * time.Second,
+	}
+	return &Site6V{client: c, maxDetail: maxDetail}
 }
 
 func (p *Site6V) Name() string { return "6v520" }

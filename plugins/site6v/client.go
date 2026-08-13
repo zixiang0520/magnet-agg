@@ -60,9 +60,12 @@ func (c *Client) PostFormCtx(ctx context.Context, url, formBody string, checkRed
 
 	client := c.HTTP
 	if checkRedirect != nil {
+		// Must copy Transport too — otherwise env HTTP_PROXY leaks in and
+		// breaks GBK EmpireCMS search / cookie jar behaviour.
 		client = &http.Client{
 			Timeout:       c.HTTP.Timeout,
 			Jar:           c.HTTP.Jar,
+			Transport:     c.HTTP.Transport,
 			CheckRedirect: checkRedirect,
 		}
 	}

@@ -27,9 +27,10 @@ var (
 	// 列表页条目（fallback 用）：<li><span>日期</span><a href="/分类/.../编号.html">标题</a>
 	itemRe = regexp.MustCompile(`<li>\s*<span>(\d{4}-\d{2}-\d{2})</span>\s*<a href="(/[^"]+\.html)"[^>]*>([^<]+)</a>`)
 
-	// 站内搜索结果条目：<span class="blue14"><a href="详情URL">标题</a></span>
-	blueRe = regexp.MustCompile(`<span\s+class=["']?blue14["']?\s*>\s*<a\s+([^>]*?)>([\s\S]*?)</a>\s*</span>`)
-	hrefRe = regexp.MustCompile(`href\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))`)
+	// 站内搜索结果条目：<span class="blue14"><a href=...>标题</a></span>
+	// 标题内可能再包 <font>；href 可能无引号。
+	blueRe = regexp.MustCompile(`(?is)<span\s+class=["']?blue14["']?\s*>\s*<a\s+([^>]+)>([\s\S]*?)</a>\s*</span>`)
+	hrefRe = regexp.MustCompile(`(?i)href\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))`)
 
 	// 详情页路径白名单：/分类/.../编号.html
 	detailPathRe = regexp.MustCompile(`/(?:dy|gydy|gq|zydy|jddy|3D|dlz|rj|mj|zy|shoujidianyingmp4|juji|dsj|dm|dongman|dianshiju|zongyi|xiju|dongzuo|kehuan|aiqing|kongbu|zhanzheng|juqing|anime|lianzai|dianshi)/[A-Za-z0-9._/%-]+\.html`)

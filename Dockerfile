@@ -1,6 +1,8 @@
 FROM golang:1.22-alpine AS build
 WORKDIR /src
 RUN apk add --no-cache git ca-certificates
+ENV GOPROXY=https://goproxy.cn,https://proxy.golang.org,direct
+ENV GOSUMDB=off
 COPY go.mod ./
 COPY . .
 RUN go mod tidy && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o /out/magnet-agg .
