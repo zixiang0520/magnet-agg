@@ -5,16 +5,18 @@ import (
 	"net/http"
 	"strings"
 
+	"magnet-agg/internal/plugin"
 	"magnet-agg/internal/search"
 )
 
 type Server struct {
 	eng    *search.Engine
+	reg    *plugin.Registry
 	webDir string
 }
 
-func New(eng *search.Engine, webDir string) *Server {
-	return &Server{eng: eng, webDir: webDir}
+func New(eng *search.Engine, reg *plugin.Registry, webDir string) *Server {
+	return &Server{eng: eng, reg: reg, webDir: webDir}
 }
 
 func (s *Server) Handler() http.Handler {
@@ -51,7 +53,11 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) plugins(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, 200, map[string]any{"plugins": []string{"6v520", "apibay"}})
+	names := []string{}
+	if s.reg != nil {
+		names = s.reg.Names()
+	}
+	writeJSON(w, 200, map[string]any{"plugins": names})
 }
 
 func (s *Server) search(w http.ResponseWriter, r *http.Request) {

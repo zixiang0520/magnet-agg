@@ -6,10 +6,12 @@
 
 - 多源并发搜索 + **infohash 去重**
 - 源插件：
-  - `6v520`：站内搜索 + 详情页提取 `magnet:`
+  - `6v520`：站内搜索 + 详情页提取 `magnet:`（中文影视）
   - `apibay`：ThePirateBay 公开 JSON API（第 2 源）
+  - `torrents-csv`：torrents-csv.com 公开搜索 API（第 3 源）
+  - `yts`：可选（`ENABLE_YTS=1`）；本网对 yts.mx TLS 常失败
 - 极简 Web UI：搜索 / 复制磁力 / 看来源
-- API：`GET /api/search?q=关键词`、`GET /api/health`
+- API：`GET /api/search?q=关键词`、`GET /api/plugins`、`GET /api/health`
 
 ## 本地 / NAS
 
@@ -25,7 +27,9 @@ curl -sS 'http://127.0.0.1:28910/api/search?q=inception' | head
 |------|------|------|
 | `LISTEN` | `:8080` | 监听地址 |
 | `SITE6V_BASE` | `https://www.6v520.com` | 6v 站点根 |
-| `HTTP_PROXY` / `HTTPS_PROXY` | 空 | 访问 apibay 等外网源时可用 |
+| `APIBAY_PROXY` / `TORRENTSCSV_PROXY` | 空 | 外网源专用代理（推荐，避免污染 6v） |
+| `ENABLE_YTS` | 空 | 设为 `1` 启用 yts 插件 |
+| `YTS_PROXY` / `YTS_BASE` | — | yts 可选代理与 API 根 |
 
 ## 扩展新源
 

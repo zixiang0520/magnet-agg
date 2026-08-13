@@ -18,9 +18,14 @@ func main() {
 	reg := plugin.NewRegistry()
 	reg.Register(plugin.NewSite6V(site6vBase, 8))
 	reg.Register(plugin.NewAPIBay())
+	reg.Register(plugin.NewTorrentsCSV())
+	// yts.mx TLS often fails behind current proxy; keep code for optional enable:
+	if os.Getenv("ENABLE_YTS") == "1" {
+		reg.Register(plugin.NewYTS())
+	}
 
 	eng := search.NewEngine(reg, 45*time.Second)
-	srv := server.New(eng, "web")
+	srv := server.New(eng, reg, "web")
 
 	log.Printf("magnet-agg listening on %s plugins=%v", addr, reg.Names())
 	if err := http.ListenAndServe(addr, srv.Handler()); err != nil {

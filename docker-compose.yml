@@ -9,8 +9,12 @@ services:
     environment:
       - LISTEN=:8080
       - SITE6V_BASE=https://www.6v520.com
-      # 仅 apibay 使用（代码读 APIBAY_PROXY）；6v 直连
+      # 外网源（apibay / yts）走 v2raya；6v 插件内强制直连
       - APIBAY_PROXY=http://192.168.1.100:20172
+      - TORRENTSCSV_PROXY=http://192.168.1.100:20172
+      # yts.mx 在本网 TLS 常失败；需要时设 ENABLE_YTS=1 并配 YTS_PROXY
+      # - ENABLE_YTS=1
+      # - YTS_PROXY=http://192.168.1.100:20172
     logging:
       driver: json-file
       options:
