@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -41,6 +42,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/settings", s.settings)
 	mux.HandleFunc("/api/plugins/test", s.testPlugin)
 	mux.HandleFunc("/api/tmdb/test", s.testTMDB)
+	mux.HandleFunc("/api/tmdb/discover", s.tmdbDiscover)
+	mux.HandleFunc("/api/tmdb/poster", s.tmdbPoster)
 	mux.HandleFunc("/api/2dland/status", s.landStatus)
 	mux.HandleFunc("/api/2dland/login", s.landLogin)
 	mux.HandleFunc("/api/2dland/poll", s.landPoll)
@@ -300,6 +303,58 @@ func (s *Server) testTMDB(w http.ResponseWriter, r *http.Request) {
 		out["error"] = "无结果"
 	}
 	writeJSON(w, 200, out)
+}
+
+func tmdbClientFromCfg() (*tmdb.Client, error) {
+	c := cfg.Get()
+	if strings.TrimSpace(c.TmdbAPIKey) == "" {
+		return nil, fmt.Errorf("未配置 TMDB API Key")
+	}
+	return tmdb.New(c.TmdbAPIKey, c.TmdbProxy, c.TmdbLang), nil
+}
+
+func (s *Server) tmdbDiscover(w http.ResponseWriter, r *http.Request) {
+	cli, err := tmdbClientFromCfg()
+	if err != nil {
+		writeJSON(w, 400, map[string]string{"error": err.Error()})
+		return
+	}
+	kind := strings.TrimSpace(r.URL.Query().Get("type"))
+	if kind != "tv" {
+		kind = "movie"
+	}
+	items, err := cli.Discover(r.Context(), kind, 12)
+	if err != nil {
+		writeJSON(w, 502, map[string]string{"error": err.Error()})
+		return
+	}
+	writeJSON(w, 200, map[string]any{"type": kind, "items": items})
+}
+
+func (s *Server) tmdbPoster(w http.ResponseWriter, r *http.Request) {
+	cli, err := tmdbClientFromCfg()
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+	path := strings.TrimSpace(r.URL.Query().Get("path"))
+	resp, err := cli.FetchPoster(r.Context(), path)
+	if err != nil {
+		http.Error(w, err.Error(), 502)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		http.Error(w, "poster fetch failed", resp.StatusCode)
+		return
+	}
+	ct := resp.Header.Get("Content-Type")
+	if ct == "" {
+		ct = "image/jpeg"
+	}
+	w.Header().Set("Content-Type", ct)
+	w.Header().Set("Cache-Control", "public, max-age=86400")
+	_, _ = io.Copy(w, io.LimitReader(resp.Body, 4<<20))
 }
 
 func (s *Server) landStatus(w http.ResponseWriter, r *http.Request) {

@@ -75,6 +75,7 @@ form.addEventListener('submit', async (e) => {
   list.innerHTML = '';
   selected.clear();
   renderFab();
+  hideDiscover(true);
   meta.textContent = '搜索中（多源并发）…';
   form.querySelector('button').disabled = true;
   try {
@@ -85,7 +86,10 @@ form.addEventListener('submit', async (e) => {
     const errs = data.errors ? Object.entries(data.errors).map(([k,v]) => `${k}失败`).join(' · ') : '';
     meta.innerHTML = `共 <b>${data.total}</b> 条 · ${data.took_ms}ms` +
       (src ? ` · 源命中 ${esc(src)}` : '') +
-      (errs ? ` · <span class="err">${esc(errs)}</span>` : '');
+      (errs ? ` · <span class="err">${esc(errs)}</span>` : '') +
+      ` · <a href="#" id="backDisc">返回推荐</a>`;
+    const back = $('#backDisc');
+    if (back) back.onclick = (ev) => { ev.preventDefault(); list.innerHTML=''; meta.textContent=''; hideDiscover(false); };
     if (!data.results || !data.results.length) {
       list.innerHTML = '<p class="sub">无结果，换个关键词试试</p>';
       return;
@@ -132,3 +136,58 @@ form.addEventListener('submit', async (e) => {
     form.querySelector('button').disabled = false;
   }
 });
+
+const disc = $('#discover');
+const discGrid = $('#discGrid');
+const discMeta = $('#discMeta');
+
+function hideDiscover(hide) {
+  if (!disc) return;
+  disc.hidden = !!hide;
+}
+
+async function runSearch(q) {
+  input.value = q;
+  form.requestSubmit();
+}
+
+async function loadDiscover(kind) {
+  if (!discGrid) return;
+  kind = kind === 'tv' ? 'tv' : 'movie';
+  discMeta.textContent = '加载 TMDB…';
+  discGrid.innerHTML = '';
+  try {
+    const res = await fetch('/api/tmdb/discover?type=' + kind);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    const items = data.items || [];
+    discMeta.textContent = items.length ? `点击海报即可搜索磁力 · ${kind === 'tv' ? '在播剧集' : '正在上映'}` : '暂无推荐';
+    discGrid.innerHTML = items.map(it => {
+      const poster = it.poster ? `<img src="${esc(it.poster)}" alt="" loading="lazy" />` : `<div class="ph">${esc((it.title||'?').slice(0,1))}</div>`;
+      const vote = it.vote ? it.vote.toFixed(1) : '';
+      return `<button type="button" class="poster" data-q="${esc(it.search_query || it.title)}">
+        ${poster}
+        <span class="pt">${esc(it.title)}</span>
+        <span class="py">${esc(it.year || '')}${vote ? ' · ' + vote : ''}</span>
+      </button>`;
+    }).join('');
+    discGrid.querySelectorAll('.poster').forEach(btn => {
+      btn.addEventListener('click', () => {
+        hideDiscover(true);
+        runSearch(btn.getAttribute('data-q') || '');
+      });
+    });
+  } catch (e) {
+    discMeta.textContent = '推荐加载失败：' + e.message;
+  }
+}
+
+if (disc) {
+  document.querySelectorAll('.disc-tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.disc-tabs button').forEach(b => b.classList.toggle('on', b === btn));
+      loadDiscover(btn.dataset.kind);
+    });
+  });
+  loadDiscover('movie');
+}

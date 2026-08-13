@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>磁力聚合搜索 · magnet-agg</title>
-  <link rel="stylesheet" href="/style.css?v=admin1" />
+  <link rel="stylesheet" href="/style.css?v=disc1" />
 </head>
 <body>
   <header class="bar">
@@ -18,8 +18,19 @@
     </form>
     <div id="meta"></div>
     <div id="list"></div>
+    <section id="discover">
+      <div class="disc-head">
+        <h2>TMDB 最新推荐</h2>
+        <div class="disc-tabs">
+          <button type="button" class="ghost on" data-kind="movie">电影</button>
+          <button type="button" class="ghost" data-kind="tv">剧集</button>
+        </div>
+      </div>
+      <p id="discMeta" class="muted">加载中…</p>
+      <div id="discGrid" class="poster-grid"></div>
+    </section>
   </main>
   <div id="fab" hidden></div>
-  <script src="/app.js?v=admin1"></script>
+  <script src="/app.js?v=disc1"></script>
 </body>
 </html>

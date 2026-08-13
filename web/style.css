@@ -73,3 +73,18 @@ button:disabled { opacity: 0.6; cursor: wait; }
 .login-page { min-height:100vh; display:flex; align-items:center; justify-content:center; }
 .login-page form { width:min(360px, 92vw); display:flex; flex-direction:column; gap:0.7rem; }
 .login-page input { padding:0.75rem 1rem; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text); }
+.disc-head { display:flex; justify-content:space-between; align-items:center; margin:1.2rem 0 0.4rem; }
+.disc-tabs { display:flex; gap:0.35rem; }
+.disc-tabs .on { background: var(--acc); }
+.poster-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap:0.7rem; }
+.poster {
+  display:flex; flex-direction:column; gap:0.3rem; padding:0; background:transparent;
+  color:var(--text); text-align:left; border-radius:10px;
+}
+.poster img, .poster .ph {
+  width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:10px;
+  background:#243044; border:1px solid var(--border);
+}
+.poster .ph { display:flex; align-items:center; justify-content:center; font-size:1.6rem; color:var(--muted); }
+.poster .pt { font-size:0.82rem; line-height:1.25; }
+.poster .py { font-size:0.72rem; color:var(--muted); }
