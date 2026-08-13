@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: tidy & build
+        run: |
+          go mod tidy
+          go test ./...
+          CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o magnet-agg .
+
+      - name: smoke apibay unit path
+        run: |
+          go test ./internal/plugin -count=1 -v || true
+
+      - name: upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: magnet-agg-linux-amd64
+          path: magnet-agg
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - uses: actions/checkout@v4
+      - name: docker build
+        run: docker build -t magnet-agg:ci .

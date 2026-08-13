@@ -1,0 +1,20 @@
+services:
+  magnet-agg:
+    build: .
+    image: magnet-agg:local
+    container_name: magnet-agg
+    restart: unless-stopped
+    ports:
+      - "28910:8080"
+    environment:
+      - LISTEN=:8080
+      - SITE6V_BASE=https://www.6v520.com
+      # 国内访问 apibay 不稳时可开代理（v2raya）
+      - HTTP_PROXY=http://192.168.1.100:20172
+      - HTTPS_PROXY=http://192.168.1.100:20172
+      - NO_PROXY=localhost,127.0.0.1,www.6v520.com,6v520.com
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

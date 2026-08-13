@@ -1,0 +1,9 @@
+.DS_Store
+magnet-agg
+*.exe
+dist/
+.idea/
+.vscode/
+*.log
+.env
+config.json
